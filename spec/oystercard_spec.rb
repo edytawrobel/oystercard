@@ -1,9 +1,8 @@
 require 'oystercard'
 
 describe Oystercard do
-
   subject(:oystercard) { described_class.new }
-
+  let(:station) { instance_double(Station) }
   before :each do
     @max_balance = described_class::MAX_BALANCE
     @min_charge = described_class::MIN_CHARGE
@@ -12,10 +11,6 @@ describe Oystercard do
   describe 'initialization' do
     it 'is created with a balance of zero by default' do
       expect(oystercard.balance).to eq(0)
-    end
-
-    it 'is not in use' do
-      expect(oystercard.in_journey).to eq false
     end
   end
 
@@ -27,7 +22,8 @@ describe Oystercard do
     end
 
     it 'can be topped up with a specific amount' do
-      subject.top_up(20)
+      allow(oystercard).to receive(:balance) {20}
+      #subject.top_up(20)
       expect(oystercard.balance).to eq(20)
     end
   end
@@ -43,9 +39,18 @@ describe Oystercard do
 
     it 'raises an error when the balance is lower than the minimum fare' do
       message = 'Not sufficient balance to continue journey'
-      expect{ oystercard.touch_in }.to raise_error message
+      expect{ oystercard.touch_in(station) }.to raise_error message
     end
 
+    it 'expects the card to remember the entry station' do
+      oystercard.top_up(@min_charge)
+      oystercard.touch_in(station)
+      expect(oystercard.entry_station).to eq station
+    end
+  end
+
+  describe '#entry_station' do
+    it { is_expected.to respond_to(:entry_station) }
   end
 
   describe '#touch_out' do
@@ -55,22 +60,25 @@ describe Oystercard do
       expect { oystercard.touch_out }.to change{ oystercard.balance }.by(-@min_charge)
     end
 
+    it 'after touch out sets the entry station to nil' do
+      oystercard.touch_out
+      expect(oystercard.entry_station).to eq(nil)
+    end
+
   end
 
-  describe '#in_journey' do
-    it {is_expected.to respond_to(:in_journey)}
+  describe '#in_journey?' do
+    it {is_expected.to respond_to(:in_journey?)}
 
     it 'checks if the card is in use' do
       oystercard.top_up(@min_charge)
-      expect(oystercard.touch_in).to be true
+      expect(oystercard.touch_in(station)).to eq true
     end
 
     it 'checks if the card is not in use' do
       oystercard.top_up(@min_charge)
-      oystercard.touch_in
+      oystercard.touch_in(station)
       expect(oystercard.touch_out).to eq false
     end
-
   end
-
 end
