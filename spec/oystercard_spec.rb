@@ -8,6 +8,10 @@ describe Oystercard do
     it 'is created with a balance of zero by default' do
       expect(oystercard.balance).to eq(0)
     end
+
+    it 'is not in use' do
+      expect(oystercard.in_journey).to eq false
+    end
   end
 
   context '#top_up' do
@@ -50,16 +54,14 @@ describe Oystercard do
   describe '#in_journey' do
     it {is_expected.to respond_to(:in_journey)}
 
-    it 'create a oystercard out of journey' do
-      expect(oystercard.in_journey).to eq(false)
-    end
-
     it 'checks if the card is in use' do
-        expect(oystercard.touch_in).to eq(true)
+        oystercard.touch_in
+        expect(oystercard.touch_in).to be true
     end
 
     it 'checks if the card is not in use' do
-      expect(oystercard.touch_out).to eq(false)
+      oystercard.touch_in
+      expect(oystercard.touch_out).to eq false
     end
 
   end
