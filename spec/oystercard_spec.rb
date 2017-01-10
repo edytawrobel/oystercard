@@ -1,10 +1,10 @@
 require 'oystercard'
 
 describe Oystercard do
-
+  subject(:oystercard) (described_class.new)
   describe 'initialization' do
     it 'is created with a balance of zero by default' do
-      expect(subject.balance).to eq(0)
+      expect(oystercard.balance).to eq(0)
     end
   end
 
