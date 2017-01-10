@@ -4,6 +4,11 @@ describe Oystercard do
 
   subject(:oystercard) { described_class.new }
 
+  before :each do
+    @max_balance = described_class::MAX_BALANCE
+    @min_charge = described_class::MIN_CHARGE
+  end
+
   describe 'initialization' do
     it 'is created with a balance of zero by default' do
       expect(oystercard.balance).to eq(0)
@@ -28,19 +33,9 @@ describe Oystercard do
   end
 
   it 'raises an error when the balance exceeds the max limit' do
-    max_balance = described_class::MAX_BALANCE
-    message = "You have exceeded #{max_balance}!"
+    message = "You have exceeded #{@max_balance}!"
     expect { oystercard.top_up(91) }.to raise_error message
     expect(oystercard.balance).to eq (0)
-  end
-
-  describe '#deduct' do
-    it { is_expected.to respond_to(:deduct).with(1).argument }
-
-    it 'deducts the balance by specific amount' do
-        oystercard.top_up(20)
-        expect{ oystercard.deduct(5) }.to change{ oystercard.balance}.by -5
-    end
   end
 
   describe '#touch_in' do
@@ -55,20 +50,23 @@ describe Oystercard do
 
   describe '#touch_out' do
     it {is_expected.to respond_to(:touch_out)}
+
+    it 'deducts the balance by minimum fare' do
+      expect { oystercard.touch_out }.to change{ oystercard.balance }.by(-@min_charge)
+    end
+
   end
 
   describe '#in_journey' do
     it {is_expected.to respond_to(:in_journey)}
 
     it 'checks if the card is in use' do
-      min_balance = described_class::MIN_BALANCE
-      oystercard.top_up(min_balance)
+      oystercard.top_up(@min_charge)
       expect(oystercard.touch_in).to be true
     end
 
     it 'checks if the card is not in use' do
-      min_balance = described_class::MIN_BALANCE
-      oystercard.top_up(min_balance)
+      oystercard.top_up(@min_charge)
       oystercard.touch_in
       expect(oystercard.touch_out).to eq false
     end
