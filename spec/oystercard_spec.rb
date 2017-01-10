@@ -45,6 +45,12 @@ describe Oystercard do
 
   describe '#touch_in' do
     it {is_expected.to respond_to(:touch_in)}
+
+    it 'raises an error when the balance is lower than the minimum fare' do
+      message = 'Not sufficient balance to continue journey'
+      expect{ oystercard.touch_in }.to raise_error message
+    end
+
   end
 
   describe '#touch_out' do
@@ -55,11 +61,14 @@ describe Oystercard do
     it {is_expected.to respond_to(:in_journey)}
 
     it 'checks if the card is in use' do
-        oystercard.touch_in
-        expect(oystercard.touch_in).to be true
+      min_balance = described_class::MIN_BALANCE
+      oystercard.top_up(min_balance)
+      expect(oystercard.touch_in).to be true
     end
 
     it 'checks if the card is not in use' do
+      min_balance = described_class::MIN_BALANCE
+      oystercard.top_up(min_balance)
       oystercard.touch_in
       expect(oystercard.touch_out).to eq false
     end
