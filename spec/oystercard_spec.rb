@@ -20,13 +20,6 @@ describe Oystercard do
       expect(oystercard.balance).to eq(20)
     end
 
-    it 'raises an error if the balance exceeds the max limit' do
-      max_balance = described_class::MAX_BALANCE
-      message = "You have exceeded #{max_balance}!"
-      oystercard.top_up(max_balance)
-      expect { oystercard.top_up(1) }.to raise_error message
-    end
-
     it 'raises an error when the balance exceeds the max limit' do
       max_balance = described_class::MAX_BALANCE
       message = "You have exceeded #{max_balance}!"
