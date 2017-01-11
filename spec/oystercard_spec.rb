@@ -10,19 +10,27 @@ describe Oystercard do
     @min_charge = described_class::MIN_CHARGE
   end
 
+  it "responds to ::MIN_CHARGE" do
+    expect(described_class).to be_const_defined(:MIN_CHARGE)
+  end
+
+  it "responds to ::MAX_BALANCE" do
+    expect(described_class).to be_const_defined(:MAX_BALANCE)
+  end
+
   describe 'initialization' do
     it 'is created with a balance of zero by default' do
       expect(oystercard.balance).to eq(0)
     end
+
+    it { is_expected.not_to be_in_journey }
+
+    it 'has an empty journey recorder array' do
+     expect(oystercard.journey_recorder).to be_empty
+    end
   end
 
-  describe 'journey history' do
-    it { is_expected.to respond_to(:journey_recorder) }
-
-    it 'expect journey directory to be empty' do
-      expect(oystercard.journey_recorder).to be_empty
-    end
-
+  context 'journey history' do
     it 'touching in and out creates one journey' do
       oystercard.top_up(20)
       oystercard.touch_in(entry_station)
@@ -44,59 +52,70 @@ describe Oystercard do
       #oystercard.top_up(20)
       expect(oystercard.balance).to eq(20)
     end
+
+    it 'raises an error when the balance exceeds the max limit' do
+      message = "You have exceeded #{@max_balance}!"
+      expect { oystercard.top_up(91) }.to raise_error message
+      expect(oystercard.balance).to eq (0)
+    end
   end
 
-  it 'raises an error when the balance exceeds the max limit' do
-    message = "You have exceeded #{@max_balance}!"
-    expect { oystercard.top_up(91) }.to raise_error message
-    expect(oystercard.balance).to eq (0)
+  describe '#in_journey?' do
+    it { is_expected.not_to be_in_journey}
   end
 
   describe '#touch_in' do
-    it {is_expected.to respond_to(:touch_in)}
 
     it 'raises an error when the balance is lower than the minimum fare' do
       message = 'Not sufficient balance to continue journey'
       expect{ oystercard.touch_in(entry_station) }.to raise_error message
     end
 
-    it 'expects the card to remember the entry station' do
-      oystercard.top_up(@min_charge)
+    it 'in_journey is true once touched in' do
+      oystercard.top_up(@min_charge+10)
+      oystercard.touch_in(entry_station)
+      is_expected.to be_in_journey
+    end
+
+    it "remembers the touch in station" do
+      oystercard.top_up(@min_charge+10)
       oystercard.touch_in(entry_station)
       expect(oystercard.entry_station).to eq entry_station
     end
   end
 
-  describe '#entry_station' do
-    it { is_expected.to respond_to(:entry_station) }
-  end
-
   describe '#touch_out' do
-    it {is_expected.to respond_to(:touch_out)}
+    before(:each) do
+      oystercard.top_up(@min_charge+10)
+      oystercard.touch_in(entry_station)
+    end
 
     it 'deducts the balance by minimum fare' do
       expect { oystercard.touch_out(exit_station) }.to change{ oystercard.balance }.by(-@min_charge)
     end
 
-    it 'after touch out sets the entry station to nil' do
-      oystercard.touch_out(exit_station)
-      expect(oystercard.entry_station).to eq(nil)
-    end
+    context "have touched in and out" do
+      before(:each) do
+        oystercard.touch_out(exit_station)
+      end
 
+      it 'after touch out sets the entry station to nil' do
+        expect(oystercard.entry_station).to eq(nil)
+      end
+
+      it "sets exit_station" do
+        expect(oystercard.exit_station).to eq exit_station
+      end
+
+      it "adds journey to journey_recorder array" do
+        journey = { entry_station: entry_station, exit_station: exit_station }
+        expect(oystercard.journey_recorder).to include(journey)
+      end
+
+      it "in_journey is false once touched out" do
+        is_expected.not_to be_in_journey
+      end
+    end
   end
-
-  describe '#in_journey?' do
-    it {is_expected.to respond_to(:in_journey?)}
-
-    it 'checks if the card is in use' do
-      oystercard.top_up(@min_charge)
-      expect(oystercard.touch_in(entry_station)).to eq true
-    end
-
-    it 'checks if the card is not in use' do
-      oystercard.top_up(@min_charge)
-      oystercard.touch_in(entry_station)
-      expect(oystercard.touch_out(exit_station)).to eq false
-    end
-  end
+  
 end

@@ -7,44 +7,47 @@ class Oystercard
 
   def initialize(balance = 0)
     @balance = balance
+    @entry_station = nil
+    @exit_station = nil
     @journey_recorder = []
   end
 
   def top_up(amount)
-    fail "You have exceeded #{MAX_BALANCE}!" if exceed?(@balance + amount)
+    fail "You have exceeded #{MAX_BALANCE}!" if exceeds_max_balance?(@balance + amount)
     @balance += amount
   end
 
-  def touch_in(station)
-    @one_journey = {}
+  def touch_in(entry_station)
     message = 'Not sufficient balance to continue journey'
-    fail message if insufficient_balance?(@balance)
-    @entry_station = station
-    in_journey?
+    fail message if below_min_balance?(@balance)
+    @entry_station = entry_station
+    @exit_station = nil
   end
 
-  def touch_out(station)
+  def touch_out(exit_station)
     deduct(MIN_CHARGE)
-    @exit_station = station
-    @one_journey = { entry_station => @entry_station, exit_station => @exit_station }
-    @journey_recorder << @one_journey
+    @exit_station = exit_station
+    add_journey
     @entry_station = nil
-    in_journey?
   end
 
   def in_journey?
-     #entry_station != nil
-     !!entry_station
+     entry_station != nil
+     #!!entry_station
   end
 
   private
 
-  def exceed?(balance)
-    true if balance > MAX_BALANCE
+  def add_journey
+   @journey_recorder << { entry_station: entry_station, exit_station: exit_station }
   end
 
-  def insufficient_balance?(balance)
-    true if balance < MIN_CHARGE
+  def exceeds_max_balance?(balance)
+    balance > MAX_BALANCE
+  end
+
+  def below_min_balance?(balance)
+    balance < MIN_CHARGE
   end
 
   def deduct(amount)
