@@ -4,6 +4,8 @@ describe Oystercard do
   subject(:oystercard) { described_class.new }
   let(:entry_station) { instance_double(Station) }
   let(:exit_station) { instance_double(Station) }
+  let(:journey){ {entry_station: entry_station, exit_station: exit_station} }
+
 
   before :each do
     @max_balance = described_class::MAX_BALANCE
@@ -108,7 +110,7 @@ describe Oystercard do
       end
 
       it "adds journey to journey_recorder array" do
-        journey = { entry_station: entry_station, exit_station: exit_station }
+        #journey = { entry_station: entry_station, exit_station: exit_station }
         expect(oystercard.journey_recorder).to include(journey)
       end
 
@@ -117,5 +119,5 @@ describe Oystercard do
       end
     end
   end
-  
+
 end
