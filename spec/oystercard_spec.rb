@@ -28,7 +28,7 @@ describe Oystercard do
     it { is_expected.not_to be_in_journey }
 
     it 'has an empty journey recorder array' do
-     expect(oystercard.journey_recorder).to be_empty
+     expect(oystercard.journeys).to be_empty
     end
   end
 
@@ -37,8 +37,8 @@ describe Oystercard do
       oystercard.top_up(20)
       oystercard.touch_in(entry_station)
       oystercard.touch_out(exit_station)
-      expect(oystercard.journey_recorder).not_to be_empty
-      expect(oystercard.journey_recorder[0].class).to eq(Hash)
+      expect(oystercard.journeys).not_to be_empty
+      expect(oystercard.journeys[0].class).to eq(Hash)
     end
   end
 
@@ -109,9 +109,9 @@ describe Oystercard do
         expect(oystercard.exit_station).to eq exit_station
       end
 
-      it "adds journey to journey_recorder array" do
+      it "adds journey to journeys array" do
         #journey = { entry_station: entry_station, exit_station: exit_station }
-        expect(oystercard.journey_recorder).to include(journey)
+        expect(oystercard.journeys).to include(journey)
       end
 
       it "in_journey is false once touched out" do
